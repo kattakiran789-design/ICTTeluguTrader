@@ -1,0 +1,2 @@
+# ICTTeluguTrader
+Trading analysis 
