@@ -8,13 +8,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // స్క్రీన్ పై టెక్స్ట్ చూపించడానికి చిన్న లేఅవుట్
         val textView = TextView(this)
-        textView.text = "Welcome to ICT Telugu Trader!"
-        textView.textSize = 20f
-        textView.setPadding(50, 100, 50, 50)
-        
+        textView.text = "App Started Successfully!"
+        textView.textSize = 22f
         setContentView(textView)
     }
 }
-
