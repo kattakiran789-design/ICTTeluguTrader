@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ICT Telugu Trader</string>
+    <string name="disclaimer_title">ముఖ్యమైన గమనిక</string>
+    <string name="disclaimer_body">ఈ యాప్ అందించే సమాచారం కేవలం విద్యా ప్రయోజనాల (Education Purpose) కోసం మాత్రమే. ఇది ఎలాంటి SEBI రిజిస్టర్డ్ ఇన్వెస్ట్మెంట్ సలహా కాదు. స్టాక్ మార్కెట్లో ట్రేడింగ్ చేయడం వల్ల మీ మూలధనం (Capital) కోల్పోయే ప్రమాదం ఉంది.</string>
+    <string name="btn_analyze">చార్ట్ విశ్లేషించు (Analyze)</string>
+    <string name="placeholder_input">ఉదా: Nifty 5min FVG setup విశ్లేషించు లేదా స్క్రీన్‌షాట్ అప్‌లోడ్ చేయి...</string>
+    <string name="title_confidence">కాన్ఫిడెన్స్ లెవెల్ (Probability)</string>
+</resources>
+
