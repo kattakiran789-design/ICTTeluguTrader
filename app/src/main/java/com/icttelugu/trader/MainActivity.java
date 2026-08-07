@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private OkHttpClient client;
 
     // మీ అసలైన Gemini API Key ని ఇక్కడ డబుల్ కోట్స్ మధ్యలో ఉంచండి
-    private static final String GEMINI_API_KEY = " AQ.Ab8RN6Ih7eZGzw0Sft2z-AaFBor10eWypEsSS5ezfHovJH6WSA ";
+    private static final String GEMINI_API_KEY = "AQ.Ab8RN6Ih7eZGzw0Sft2z-AaFBor10eWypEsSS5ezfHovJH6WSA";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
