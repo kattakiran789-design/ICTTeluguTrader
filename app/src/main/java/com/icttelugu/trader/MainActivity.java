@@ -29,8 +29,8 @@ public class MainActivity extends AppCompatActivity {
     private ScrollView scrollView;
     private OkHttpClient client;
 
-    // Google AI Studio నుండి పొందిన అసలైన కీ (AIzaSy...) ఇక్కడ ఉంచండి
-    private static final String GEMINI_API_KEY = 
+    // మీ అసలైన Gemini API Key ని ఇక్కడ డబుల్ కోట్స్ మధ్యలో ఉంచండి
+    private static final String GEMINI_API_KEY = "AQ.Ab8RN6L7d5arOGcB5JjTnImMBC6DTufOZ-BG_YF5SJ97wF5cRw ";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         mainLayout.setPadding(20, 20, 20, 20);
 
         TextView header = new TextView(this);
-        header.setText("📈 ICT AI Trader (Powered by Gemini)");AQ.Ab8RN6L7d5arOGcB5JjTnImMBC6DTufOZ-BG_YF5SJ97wF5cRw
+        header.setText("📈 ICT AI Trader (Powered by Gemini)");
         header.setTextSize(20f);
         header.setPadding(0, 10, 0, 20);
         mainLayout.addView(header);
