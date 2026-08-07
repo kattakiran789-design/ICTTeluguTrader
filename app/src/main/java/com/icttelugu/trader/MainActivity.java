@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private ScrollView scrollView;
     private OkHttpClient client;
 
-    // Google AI Studio నుండి పొందిన API Key ని ఇక్కడ పేస్ట్ చేయండి
+    // Google AI Studio నుండి పొందిన అసలైన కీ (AIzaSy...) ఇక్కడ ఉంచండి
     private static final String GEMINI_API_KEY = 
 
     @Override
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(mainLayout);
 
-        addMessage("Bot", "నమస్తే! నేను మీ ICT AI Trader. ఏ ఇండెక్స్ లేదా స్టాక్ యొక్క ICT Analysis & Strategy కావాలో టైప్ చేయండి.");
+        addMessage("Bot", "నమస్తే! నేను మీ ICT AI Trader. ఏ ఇండెక్స్ లేదా స్టాక్ యొక్క ICT Analysis కావాలో టైప్ చేయండి.");
 
         sendButton.setOnClickListener(v -> {
             String query = inputMessage.getText().toString().trim();
@@ -114,13 +114,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void getAiAnalysis(String userQuery) {
         String systemPrompt = "You are an expert Institutional ICT (Inner Circle Trader) Strategy Analyst. " +
-                "Analyze the following trading query: '" + userQuery + "'. " +
-                "Provide a detailed strategy break down including: " +
-                "1. Market Structure & Institutional Order Flow " +
-                "2. Fair Value Gaps (FVG) & Liquidity Sweeps " +
-                "3. Entry, Stop Loss & Target rules " +
-                "4. Risk Management advice. " +
-                "Respond in simple Telugu with key technical terms in English.";
+                "Analyze: '" + userQuery + "'. " +
+                "Provide detailed strategy breakdown including FVG, Order Flow, Entry, SL, and Target in simple Telugu.";
 
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY;
 
@@ -171,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
                             addMessage("Bot", "❌ Data Parsing Error: " + e.getMessage());
                         }
                     } else {
-                        addMessage("Bot", "❌ API Error: దయచేసి మీ Gemini API Key సరిగ్గా ఉందో లేదో సరిచూసుకోండి.");
+                        addMessage("Bot", "❌ API Error: దయచేసి API Key చెక్ చేసుకోండి.");
                     }
                 }
             });
