@@ -133,9 +133,10 @@ public class MainActivity extends AppCompatActivity {
             jsonBody.put("contents", contents);
 
             RequestBody body = RequestBody.create(
-                    jsonBody.toString(),
-                    MediaType.parse("application/json; charset=utf-8")
-            );
+        MediaType.parse("application/json; charset=utf-8"),
+        jsonBody.toString()
+);
+            
 
             Request request = new Request.Builder()
                     .url(url)
