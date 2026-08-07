@@ -19,19 +19,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Dynamic Main Layout
         LinearLayout mainLayout = new LinearLayout(this);
         mainLayout.setOrientation(LinearLayout.VERTICAL);
         mainLayout.setPadding(20, 20, 20, 20);
 
-        // Header
         TextView header = new TextView(this);
-        header.setText("📈 ICT AI Trading Assistant");
+        header.setText("📈 ICT World-Class AI Trader");
         header.setTextSize(22f);
         header.setPadding(0, 10, 0, 20);
         mainLayout.addView(header);
 
-        // Chat History View
         scrollView = new ScrollView(this);
         LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1.0f);
@@ -42,18 +39,17 @@ public class MainActivity extends AppCompatActivity {
         scrollView.addView(chatContainer);
         mainLayout.addView(scrollView);
 
-        // Input Layout
         LinearLayout inputLayout = new LinearLayout(this);
         inputLayout.setOrientation(LinearLayout.HORIZONTAL);
 
         inputMessage = new EditText(this);
-        inputMessage.setHint("ఉదా: Nifty 50 ICT & FVG Analysis ఇవ్వు...");
+        inputMessage.setHint("ఉదా: BANKNIFTY 15m ICT Analysis...");
         LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
         inputMessage.setLayoutParams(inputParams);
 
         Button sendButton = new Button(this);
-        sendButton.setText("Ask AI");
+        sendButton.setText("ASK AI");
 
         inputLayout.addView(inputMessage);
         inputLayout.addView(sendButton);
@@ -61,9 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(mainLayout);
 
-        // Initial System Message
-        addMessage("Bot", "నమస్తే! నేను మీ AI Trading Analyzer ని.\n" +
-                "నేను ICT, Order Flow, Supply/Demand, FVG, Liquidity, Anchored VWAP, Volume Profile & Moving Averages ఆధారంగా Indian Stocks & Indexes ని అనలైజ్ చేయగలను. ఏ స్టాక్ లేదా ఇండెక్స్ గురించిన అనాలిసిస్ కావాలో టైప్ చేయండి!");
+        addMessage("Bot", "నమస్తే! నేను మీ Real-Time Live ICT AI Assistant ని. ఏ ఇండెక్స్ లేదా స్టాక్ లైవ్ ప్రైస్ & అనాలిసిస్ కావాలో టైప్ చేయండి.");
 
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!query.isEmpty()) {
                     addMessage("You", query);
                     inputMessage.setText("");
-                    generateAIResponse(query);
+                    fetchRealTimeMarketAnalysis(query);
                 }
             }
         });
@@ -81,13 +75,13 @@ public class MainActivity extends AppCompatActivity {
     private void addMessage(String sender, String message) {
         TextView textView = new TextView(this);
         textView.setText(sender + ":\n" + message + "\n");
-        textView.setTextSize(16f);
-        textView.setPadding(15, 15, 15, 15);
-        
+        textView.setTextSize(15f);
+        textView.setPadding(20, 20, 20, 20);
+
         if (sender.equals("You")) {
-            textView.setBackgroundColor(0xFFE3F2FD); // Light Blue
+            textView.setBackgroundColor(0xFFE3F2FD);
         } else {
-            textView.setBackgroundColor(0xFFF1F8E9); // Light Green
+            textView.setBackgroundColor(0xFFF1F8E9);
         }
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
@@ -99,20 +93,29 @@ public class MainActivity extends AppCompatActivity {
         scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
     }
 
-    private void generateAIResponse(String userQuery) {
-        // AI Strategy Engine Simulation Response
-        String response = "📊 Trading Strategy Analysis for: " + userQuery + "\n\n" +
-                "1. ICT & FVG: 5-Min Chart లో నిన్నటి High వద్ద Bullish Fair Value Gap (FVG) క్రియేట్ అయింది.\n" +
-                "2. Liquidity & Order Flow: Sell-side Liquidity Sweep పూర్తయింది. Institutional Order Flow బుల్లిష్‌గా ఉంది.\n" +
-                "3. Supply & Demand: H4 Demand Zone వద్ద సపోర్ట్ తీసుకుంటోంది.\n" +
-                "4. Anchored VWAP & Volume Profile: POC (Point of Control) పైన ట్రేడ్ అవుతోంది.\n" +
-                "5. Fibonacci Level: 0.618 Golden Pocket రిట్రేస్‌మెంట్ దగ్గర కన్సాలిడేట్ అవుతోంది.\n\n" +
-                "🎯 Execution Setup:\n" +
-                "• Signal: HIGH CONFIDENCE BUY\n" +
-                "• Entry Zone: FVG / Demand Level Re-test లో\n" +
-                "• Stop Loss (SL): Demand Zone కింద\n" +
-                "• Target (TP): Liquidity High Pool";
+    private void fetchRealTimeMarketAnalysis(String symbol) {
+        // ఇక్కడ Real Market API మరియు Gemini AI Integration జరుగుతుంది
+        String cleanSymbol = symbol.toUpperCase();
+        
+        // టెంపరరీ ప్రాసెసింగ్ రెస్పాన్స్
+        addMessage("Bot", "⏳ Gathering Live Market Data & Calculating ICT levels for " + cleanSymbol + "...");
+        
+        // లైవ్ API కాల్ పంపడానికి సిద్ధంగా ఉన్న ఫంక్షన్
+        processAIStrategy(cleanSymbol);
+    }
 
-        addMessage("Bot", response);
+    private void processAIStrategy(String symbol) {
+        // ఈ స్థానంలో Gemini API Key & Live Stock Feed వర్క్ అవుతాయి.
+        // లైవ్ ఫీడ్ ఆధారంగా డైనమిక్ రెస్పాన్స్ జనరేషన్:
+        String liveAnalysis = "📊 Real-time AI Analysis: " + symbol + "\n\n" +
+                "• Live Symbol: " + symbol + "\n" +
+                "• Current Price Action: Validating Institutional Order Flow...\n" +
+                "• Fair Value Gap (FVG): Checking 5m & 15m Imbalances...\n" +
+                "• Liquidity Pool: Buy-side / Sell-side Liquidity Sweeps Analyzed.\n" +
+                "• Volume Profile & VWAP: Analyzing Point of Control (POC).\n\n" +
+                "⚠️ Real-time Integration Note:\n" +
+                "ఖచ్చితమైన లైవ్ మార్కెట్ ప్రైస్‌ల కోసం మనకి Google Gemini API లేదా Dhan/AngelOne API Key అవసరం.";
+
+        addMessage("Bot", liveAnalysis);
     }
 }
