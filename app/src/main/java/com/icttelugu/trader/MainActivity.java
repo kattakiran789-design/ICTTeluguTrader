@@ -30,7 +30,7 @@ import okhttp3.Response;
 public class MainActivity extends AppCompatActivity {
 
     // మీ Google AI Studio API Key ని ఇక్కడ పేస్ట్ చేయండి
-    private static final String GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
+    private static final String GEMINI_API_KEY = "AQ.Ab8RN6KFug6rMPHmCJseGJBY2zOgAsRtJcZW9cwbq7C5PskDfw";
 
     private EditText queryInput;
     private Button askButton;
