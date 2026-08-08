@@ -30,7 +30,7 @@ import okhttp3.Response;
 public class MainActivity extends AppCompatActivity {
 
     // మీ కొత్త Google AI Studio API Key ని ఇక్కడ పేస్ట్ చేయండి
-    private static final String GEMINI_API_KE"AQ.Ab8RN6IDcbNnK5U4GRCvFyWRSrMdd99WYple_ngHaAWQ2Hkc-A";
+    private static final String GEMINI_API_KEY = "AQ.Ab8RN6IDcbNnK5U4GRCvFyWRSrMdd99WYple_ngHaAWQ2Hkc-A";
 
     private EditText queryInput;
     private Button askButton;
@@ -166,4 +166,5 @@ public class MainActivity extends AppCompatActivity {
             addMessage("Bot", "App Logic Issue: " + e.getMessage());
         }
     }
-}
+                        }
+                                       
