@@ -106,8 +106,8 @@ public class MainActivity extends AppCompatActivity {
                 "Analyze: '" + userQuery + "'. " +
                 "Provide detailed strategy breakdown including FVG, Order Flow, Entry, SL, and Target in simple Telugu.";
 
-        // v1 Endpoint design with gemini-2.5-flash
-        String url = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=" + GEMINI_API_KEY;
+        // Updated Endpoint using active model: gemini-2.0-flash
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY;
 
         try {
             JSONObject jsonBody = new JSONObject();
