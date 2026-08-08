@@ -12,6 +12,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.icttelugu.trader.R;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -27,8 +29,8 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    // మీ Google AI Studio API Key ని ఇక్కడ డబుల్ కోట్స్ మధ్యలో పేస్ట్ చేయండి
-    private static final String GEMINI_API_KEY = "AQ.Ab8RN6Ih7eZGzw0Sft2z-AaFBor10eWypEsSS5ezfHovJH6WSA";
+    // మీ Google AI Studio API Key ని ఇక్కడ పేస్ట్ చేయండి
+    private static final String GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
 
     private EditText queryInput;
     private Button askButton;
@@ -132,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    addMessage("Bot", "Connection Error: " + e.getMessage());
+                    addMessage("Bot", "Connection Failed: " + e.getMessage());
                 }
 
                 @Override
@@ -151,16 +153,16 @@ public class MainActivity extends AppCompatActivity {
 
                             addMessage("Bot", aiReply);
                         } catch (Exception e) {
-                            addMessage("Bot", "Parsing Error: " + e.getMessage());
+                            addMessage("Bot", "Data Format Issue: " + e.getMessage());
                         }
                     } else {
-                        addMessage("Bot", "API Error (" + response.code() + "): " + responseData);
+                        addMessage("Bot", "Server Status Code " + response.code() + ": " + responseData);
                     }
                 }
             });
 
         } catch (Exception e) {
-            addMessage("Bot", "System Error: " + e.getMessage());
+            addMessage("Bot", "App Logic Issue: " + e.getMessage());
         }
     }
 }
