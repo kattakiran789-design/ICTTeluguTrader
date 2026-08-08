@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
                 "Analyze: '" + userQuery + "'. " +
                 "Provide detailed strategy breakdown including FVG, Order Flow, Entry, SL, and Target in simple Telugu.";
 
-        // v1 Endpoint with gemini-1.5-flash
+        // Corrected URL endpoint
         String url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY;
 
         try {
@@ -166,5 +166,4 @@ public class MainActivity extends AppCompatActivity {
             addMessage("Bot", "App Logic Issue: " + e.getMessage());
         }
     }
-                        }
-                                       
+}
