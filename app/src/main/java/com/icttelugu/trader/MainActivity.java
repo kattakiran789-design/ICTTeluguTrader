@@ -30,7 +30,7 @@ import okhttp3.Response;
 public class MainActivity extends AppCompatActivity {
 
     // మీ కొత్త Google AI Studio API Key ని ఇక్కడ పేస్ట్ చేయండి
-    private static final String GEMINI_API_KEY = "AQ.Ab8RN6IDcbNnK5U4GRCvFyWRSrMdd99WYple_ngHaAWQ2Hkc-A";
+    private static final String GEMINI_API_KEY = "AQ.Ab8RN6Kp0R54LQQjedLaCCmA3AyvACmFqGjXVsoWNhy9josG_A";
 
     private EditText queryInput;
     private Button askButton;
@@ -106,8 +106,8 @@ public class MainActivity extends AppCompatActivity {
                 "Analyze: '" + userQuery + "'. " +
                 "Provide detailed strategy breakdown including FVG, Order Flow, Entry, SL, and Target in simple Telugu.";
 
-        // Validated Endpoint using gemini-2.5-flash
-        String url = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=" + GEMINI_API_KEY;
+        // Correct Endpoint with gemini-2.0-flash
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY;
 
         try {
             JSONObject jsonBody = new JSONObject();
@@ -166,5 +166,5 @@ public class MainActivity extends AppCompatActivity {
             addMessage("Bot", "App Logic Issue: " + e.getMessage());
         }
     }
-            }
-                                  
+    }
+                       
