@@ -48,8 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
         client = new OkHttpClient();
 
-        // ప్రారంభ సందేశం (Welcome Message)
-        addMessage("Bot", "Namaste! Nenu mi ICT AI Trader. E index leda stock yokka ICT Analysis kavalo type cheyandi.");
+        addMessage("Bot", "Namaste! Nenu mi ICT AI Trader. Symbol type cheyandi (e.g., RELIANCE.NS, TCS.NS, ^NSEI for Nifty).");
 
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,8 +57,8 @@ public class MainActivity extends AppCompatActivity {
                 if (!userQuery.isEmpty()) {
                     addMessage("You", userQuery);
                     inputMessage.setText("");
-                    addMessage("Bot", "AI analysis chestondi... Dayachesi vechi undandi.");
-                    getAiAnalysis(userQuery);
+                    addMessage("Bot", "Yahoo Finance nundi Live Market Data teeskuntondi...");
+                    fetchLiveMarketData(userQuery);
                 }
             }
         });
@@ -76,36 +75,98 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void getAiAnalysis(String userQuery) {
-        String systemPrompt = "You are a professional ICT (Inner Circle Trader) Strategy Analyst for Indian Markets (Nifty, BankNifty, Stocks, Sensex).\n" +
-                "The user asked about: '" + userQuery + "'.\n\n" +
-                "Analyze the market strictly following ICT Order Block & Liquidity concepts. Output ONLY in clear TELUGU mixed with English technical terms.\n\n" +
-                "Provide the response strictly in this format:\n\n" +
-                "📊 **" + userQuery.toUpperCase() + " ICT & ORDER BLOCK ANALYSIS**\n\n" +
+    // Step 1: Yahoo Finance API నుండి Live Market Data పొందే పద్ధతి
+    private void fetchLiveMarketData(String symbol) {
+        String formattedSymbol = symbol.toUpperCase().trim();
+        
+        // Indian Stocks కోసం .NS suffix లేకపోతే ఆటోమేటిక్‌గా యాడ్ చేస్తుంది
+        if (!formattedSymbol.contains(".") && !formattedSymbol.startsWith("^")) {
+            formattedSymbol = formattedSymbol + ".NS";
+        }
+
+        String yahooUrl = "https://query1.finance.yahoo.com/v8/finance/chart/" + formattedSymbol + "?interval=1m&range=1d";
+
+        Request request = new Request.Builder()
+                .url(yahooUrl)
+                .addHeader("User-Agent", "Mozilla/5.0")
+                .build();
+
+        String finalSymbol = formattedSymbol;
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                addMessage("Bot", "Yahoo Finance Data Fetch Failed: " + e.getMessage() + "\nFallback analysis chestondi...");
+                getAiAnalysis(finalSymbol, 0, 0, 0, 0, false);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        String responseData = response.body().string();
+                        JSONObject jsonObject = new JSONObject(responseData);
+                        JSONObject result = jsonObject.getJSONObject("chart").getJSONArray("result").getJSONObject(0);
+                        JSONObject meta = result.getJSONObject("meta");
+
+                        double ltp = meta.optDouble("regularMarketPrice", 0.0);
+                        double dayHigh = meta.optDouble("regularMarketDayHigh", 0.0);
+                        double dayLow = meta.optDouble("regularMarketDayLow", 0.0);
+                        double previousClose = meta.optDouble("chartPreviousClose", 0.0);
+
+                        addMessage("Bot", "Live Data Received! Current Price: ₹" + ltp + "\nAI Intraday Analysis chestondi...");
+                        getAiAnalysis(finalSymbol, ltp, dayHigh, dayLow, previousClose, true);
+
+                    } catch (Exception e) {
+                        getAiAnalysis(finalSymbol, 0, 0, 0, 0, false);
+                    }
+                } else {
+                    getAiAnalysis(finalSymbol, 0, 0, 0, 0, false);
+                }
+            }
+        });
+    }
+
+    // Step 2: Live Data ని Prompt లోకి పంపి AI విశ్లేషణ పొందడం
+    private void getAiAnalysis(String symbol, double ltp, double dayHigh, double dayLow, double prevClose, boolean hasLiveData) {
+        
+        String liveContext = "";
+        if (hasLiveData) {
+            liveContext = "REAL-TIME MARKET DATA FOR " + symbol + ":\n" +
+                    "- Current Price (LTP): " + ltp + "\n" +
+                    "- Today High: " + dayHigh + "\n" +
+                    "- Today Low: " + dayLow + "\n" +
+                    "- Previous Close: " + prevClose + "\n\n" +
+                    "STRICT INSTRUCTION: Calculate exact Order Blocks, FVG, Entry, Stop Loss, and Targets relative to the provided Current Price (" + ltp + "). Do NOT invent random prices.";
+        } else {
+            liveContext = "Live market data unavailable for " + symbol + ". Provide structural ICT Order Block analysis.";
+        }
+
+        String systemPrompt = "You are a professional ICT Strategy Analyst for Indian Markets.\n" + liveContext + "\n\n" +
+                "Output ONLY in clear TELUGU mixed with English technical terms in this format:\n\n" +
+                "📊 **" + symbol.toUpperCase() + " REAL-TIME ICT ANALYSIS**\n\n" +
                 "1. **Market Structure & Liquidity Sweep:**\n" +
-                "   - Market Trend / Bias (Bullish / Bearish)\n" +
-                "   - Liquidity Sweep (Buy-side / Sell-side Liquidity taken)\n\n" +
+                "   - Market Bias (Bullish / Bearish)\n" +
+                "   - Liquidity Sweep Level\n\n" +
                 "2. **Order Block (OB) Identification:**\n" +
-                "   - **Bullish Order Block Zone:** (Key demand/buying OB level)\n" +
-                "   - **Bearish Order Block Zone:** (Key supply/selling OB level)\n" +
-                "   - **Order Block Status:** (Mitigated or Unmitigated)\n\n" +
+                "   - **Bullish Order Block Zone:** (Demand OB near LTP)\n" +
+                "   - **Bearish Order Block Zone:** (Supply OB near LTP)\n" +
+                "   - **Status:** (Mitigated / Unmitigated)\n\n" +
                 "3. **Fair Value Gap (FVG):**\n" +
-                "   - Important Imbalance / FVG range\n\n" +
-                "4. **Exact Trade Execution Plan:**\n" +
-                "   - **Entry Point:** (Exact level near Order Block / FVG)\n" +
-                "   - **Stop Loss (SL):** (Strict level below/above OB)\n" +
-                "   - **Target (TP1 & TP2):** (Next Liquidity Pool / High / Low)\n" +
-                "   - **Risk-to-Reward Ratio:** (e.g., 1:2.5)\n\n" +
-                "5. **Confirmation for Entry:**\n" +
-                "   - 5-Min Market Structure Shift (MSS / Choch) level needed for trigger.\n\n" +
-                "Do NOT give generic definitions. Provide precise trading levels, Order Block zones, and strategy execution steps.";
+                "   - Imbalance / FVG range\n\n" +
+                "4. **Exact Intraday Execution Plan:**\n" +
+                "   - **Entry Point:** (Exact level near current LTP/OB)\n" +
+                "   - **Stop Loss (SL):** (Strict level)\n" +
+                "   - **Target (TP1 & TP2):** (Target levels)\n" +
+                "   - **Risk-to-Reward Ratio:**\n\n" +
+                "5. **Confirmation:**\n" +
+                "   - 5-Min MSS / Choch level needed.";
 
         String url = "https://api.groq.com/openai/v1/chat/completions";
 
         try {
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("model", "llama-3.3-70b-versatile");
-            jsonBody.put("temperature", 0.3);
+            jsonBody.put("temperature", 0.2);
 
             JSONArray messages = new JSONArray();
             
@@ -116,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
 
             JSONObject userObj = new JSONObject();
             userObj.put("role", "user");
-            userObj.put("content", userQuery);
+            userObj.put("content", "Analyze " + symbol + " using the live prices provided.");
             messages.put(userObj);
 
             jsonBody.put("messages", messages);
@@ -165,4 +226,5 @@ public class MainActivity extends AppCompatActivity {
             addMessage("Bot", "App Logic Issue: " + e.getMessage());
         }
     }
-}
+                        }
+    
