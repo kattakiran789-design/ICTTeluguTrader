@@ -5,35 +5,31 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <ScrollView
-        android:id="@+id/scrollView"
+    <ListView
+        android:id="@+id/chatListView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <LinearLayout
-            android:id="@+id/chatContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-    </ScrollView>
+        android:layout_weight="1"
+        android:divider="@null"
+        android:dividerHeight="8dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="8dp">
+        android:marginTop="8dp">
 
         <EditText
-            android:id="@+id/queryInput"
+            android:id="@+id/inputMessage"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="Type stock or index name..."
-            android:inputType="text" />
+            android:inputType="text"
+            android:minHeight="48dp" />
 
         <Button
-            android:id="@+id/askButton"
+            android:id="@+id/btnSend"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="ASK AI" />
