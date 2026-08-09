@@ -10,6 +10,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
         client = new OkHttpClient();
 
-        addMessage("Bot", "Namaste! Nenu mi ICT AI Trader. Symbol type cheyandi (e.g., RELIANCE.NS, TCS.NS, ^NSEI for Nifty).");
+        addMessage("Bot", "Namaste! Nenu mi ICT AI Trader. Stock or Index name type cheyandi (e.g., RELIANCE, TCS, NIFTY, BANKNIFTY).");
 
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -57,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!userQuery.isEmpty()) {
                     addMessage("You", userQuery);
                     inputMessage.setText("");
-                    addMessage("Bot", "Yahoo Finance nundi Live Market Data teeskuntondi...");
+                    addMessage("Bot", "Live Market Data teeskuntondi... Dayachesi vechi undandi.");
                     fetchLiveMarketData(userQuery);
                 }
             }
@@ -75,101 +78,93 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // Step 1: Yahoo Finance API నుండి Live Market Data పొందే పద్ధతి
+    // Step 1: Google Finance నుండి JSoup ద్వారా Live Price ఫెచ్ చేయడం
     private void fetchLiveMarketData(String symbol) {
-        String formattedSymbol = symbol.toUpperCase().trim();
-        
-        // Indian Stocks కోసం .NS suffix లేకపోతే ఆటోమేటిక్‌గా యాడ్ చేస్తుంది
-        if (!formattedSymbol.contains(".") && !formattedSymbol.startsWith("^")) {
-            formattedSymbol = formattedSymbol + ".NS";
+        String searchSymbol = symbol.toUpperCase().trim();
+
+        // Nifty, Bank Nifty మరియు ఇతర స్టాక్స్ కోసం Mapping
+        if (searchSymbol.equals("NIFTY") || searchSymbol.equals("NIFTY 50") || searchSymbol.equals("NIFTY50")) {
+            searchSymbol = "NIFTY_50:INDEXNSE";
+        } else if (searchSymbol.equals("BANKNIFTY") || searchSymbol.equals("BANK NIFTY") || searchSymbol.equals("NIFTYBANK")) {
+            searchSymbol = "NIFTY_BANK:INDEXNSE";
+        } else if (!searchSymbol.contains(":")) {
+            searchSymbol = searchSymbol + ":NSE";
         }
 
-        String yahooUrl = "https://query1.finance.yahoo.com/v8/finance/chart/" + formattedSymbol + "?interval=1m&range=1d";
+        String googleFinanceUrl = "https://www.google.com/finance/quote/" + searchSymbol;
+        String finalSymbol = searchSymbol;
 
-        Request request = new Request.Builder()
-                .url(yahooUrl)
-                .addHeader("User-Agent", "Mozilla/5.0")
-                .build();
-
-        String finalSymbol = formattedSymbol;
-        client.newCall(request).enqueue(new Callback() {
+        new Thread(new Runnable() {
             @Override
-            public void onFailure(Call call, IOException e) {
-                addMessage("Bot", "Yahoo Finance Data Fetch Failed: " + e.getMessage() + "\nFallback analysis chestondi...");
-                getAiAnalysis(finalSymbol, 0, 0, 0, 0, false);
-            }
+            public void run() {
+                try {
+                    Document doc = Jsoup.connect(googleFinanceUrl)
+                            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                            .get();
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful() && response.body() != null) {
-                    try {
-                        String responseData = response.body().string();
-                        JSONObject jsonObject = new JSONObject(responseData);
-                        JSONObject result = jsonObject.getJSONObject("chart").getJSONArray("result").getJSONObject(0);
-                        JSONObject meta = result.getJSONObject("meta");
+                    Element priceElement = doc.select("div.YMlA2d").first();
 
-                        double ltp = meta.optDouble("regularMarketPrice", 0.0);
-                        double dayHigh = meta.optDouble("regularMarketDayHigh", 0.0);
-                        double dayLow = meta.optDouble("regularMarketDayLow", 0.0);
-                        double previousClose = meta.optDouble("chartPreviousClose", 0.0);
+                    if (priceElement != null) {
+                        String priceText = priceElement.text().replaceAll("[^0-9.]", "");
+                        double ltp = Double.parseDouble(priceText);
 
-                        addMessage("Bot", "Live Data Received! Current Price: ₹" + ltp + "\nAI Intraday Analysis chestondi...");
-                        getAiAnalysis(finalSymbol, ltp, dayHigh, dayLow, previousClose, true);
-
-                    } catch (Exception e) {
-                        getAiAnalysis(finalSymbol, 0, 0, 0, 0, false);
+                        addMessage("Bot", "Live Data Received! Current Price (LTP): ₹" + ltp + "\nAI Real-time Intraday Analysis chestondi...");
+                        getAiAnalysis(finalSymbol, ltp, true);
+                    } else {
+                        getAiMessageFallback(finalSymbol);
                     }
-                } else {
-                    getAiAnalysis(finalSymbol, 0, 0, 0, 0, false);
+                } catch (Exception e) {
+                    getAiMessageFallback(finalSymbol);
                 }
             }
-        });
+        }).start();
     }
 
-    // Step 2: Live Data ని Prompt లోకి పంపి AI విశ్లేషణ పొందడం
-    private void getAiAnalysis(String symbol, double ltp, double dayHigh, double dayLow, double prevClose, boolean hasLiveData) {
-        
+    private void getAiMessageFallback(String symbol) {
+        addMessage("Bot", "Live price fetch failed. Standard ICT Analysis పంపిస్తున్నాము...");
+        getAiAnalysis(symbol, 0, false);
+    }
+
+    // Step 2: Live Price ని Prompts లోకి పంపి AI Analysis పొందడం
+    private void getAiAnalysis(String symbol, double ltp, boolean hasLiveData) {
         String liveContext = "";
         if (hasLiveData) {
-            liveContext = "REAL-TIME MARKET DATA FOR " + symbol + ":\n" +
-                    "- Current Price (LTP): " + ltp + "\n" +
-                    "- Today High: " + dayHigh + "\n" +
-                    "- Today Low: " + dayLow + "\n" +
-                    "- Previous Close: " + prevClose + "\n\n" +
-                    "STRICT INSTRUCTION: Calculate exact Order Blocks, FVG, Entry, Stop Loss, and Targets relative to the provided Current Price (" + ltp + "). Do NOT invent random prices.";
+            liveContext = "CRITICAL INSTRUCTION: The REAL-TIME Live Market Price (LTP) for " + symbol + " is EXTREMELY EXACTLY: ₹" + ltp + ".\n" +
+                    "All Order Blocks, Entry Points, Stop Loss, and Targets MUST be strictly calculated near this exact Current Price of ₹" + ltp + ". Do not invent random prices.";
         } else {
-            liveContext = "Live market data unavailable for " + symbol + ". Provide structural ICT Order Block analysis.";
+            liveContext = "Live price fetch failed. Provide relative structural levels for " + symbol + ".";
         }
 
-        String systemPrompt = "You are a professional ICT Strategy Analyst for Indian Markets.\n" + liveContext + "\n\n" +
-                "Output ONLY in clear TELUGU mixed with English technical terms in this format:\n\n" +
-                "📊 **" + symbol.toUpperCase() + " REAL-TIME ICT ANALYSIS**\n\n" +
-                "1. **Market Structure & Liquidity Sweep:**\n" +
-                "   - Market Bias (Bullish / Bearish)\n" +
-                "   - Liquidity Sweep Level\n\n" +
+        String systemPrompt = "You are an expert ICT Strategy Analyst for Indian Stock Markets.\n" + liveContext + "\n\n" +
+                "Provide output ONLY in TELUGU mixed with English technical terms in this exact format:\n\n" +
+                "📊 **" + symbol.toUpperCase() + " REAL-TIME ICT ANALYSIS**\n" +
+                "💰 **Live Market Price (LTP): ₹" + ltp + "**\n\n" +
+                "1. **Market Trend & Liquidity Sweep:**\n" +
+                "   - Trend: (Bullish / Bearish)\n" +
+                "   - Liquidity Level Taken\n\n" +
                 "2. **Order Block (OB) Identification:**\n" +
-                "   - **Bullish Order Block Zone:** (Demand OB near LTP)\n" +
-                "   - **Bearish Order Block Zone:** (Supply OB near LTP)\n" +
-                "   - **Status:** (Mitigated / Unmitigated)\n\n" +
+                "   - **Bullish Order Block Zone:** (Demand zone near " + ltp + ")\n" +
+                "   - **Bearish Order Block Zone:** (Supply zone near " + ltp + ")\n" +
+                "   - **Status:** Unmitigated / Mitigated\n\n" +
                 "3. **Fair Value Gap (FVG):**\n" +
-                "   - Imbalance / FVG range\n\n" +
-                "4. **Exact Intraday Execution Plan:**\n" +
-                "   - **Entry Point:** (Exact level near current LTP/OB)\n" +
+                "   - Imbalance Zone around Current Price\n\n" +
+                "4. **Exact Intraday Trade Plan:**\n" +
+                "   - **Entry Point:** (Near " + ltp + ")\n" +
                 "   - **Stop Loss (SL):** (Strict level)\n" +
-                "   - **Target (TP1 & TP2):** (Target levels)\n" +
-                "   - **Risk-to-Reward Ratio:**\n\n" +
+                "   - **Targets (TP1 & TP2):**\n" +
+                "   - **Risk-Reward:**\n\n" +
                 "5. **Confirmation:**\n" +
-                "   - 5-Min MSS / Choch level needed.";
+                "   - 5-Min Choch / MSS Trigger level";
 
         String url = "https://api.groq.com/openai/v1/chat/completions";
 
         try {
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("model", "llama-3.3-70b-versatile");
-            jsonBody.put("temperature", 0.2);
+            jsonBody.put("temperature", 0.1);
 
             JSONArray messages = new JSONArray();
-            
+
             JSONObject systemObj = new JSONObject();
             systemObj.put("role", "system");
             systemObj.put("content", systemPrompt);
@@ -177,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
 
             JSONObject userObj = new JSONObject();
             userObj.put("role", "user");
-            userObj.put("content", "Analyze " + symbol + " using the live prices provided.");
+            userObj.put("content", "Give ICT Analysis for " + symbol + " based on LTP " + ltp);
             messages.put(userObj);
 
             jsonBody.put("messages", messages);
@@ -197,16 +192,14 @@ public class MainActivity extends AppCompatActivity {
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    addMessage("Bot", "Connection Failed: " + e.getMessage());
+                    addMessage("Bot", "Connection Error: " + e.getMessage());
                 }
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
-                    String responseData = response.body() != null ? response.body().string() : "";
-
-                    if (response.isSuccessful()) {
+                    if (response.isSuccessful() && response.body() != null) {
                         try {
-                            JSONObject jsonResponse = new JSONObject(responseData);
+                            JSONObject jsonResponse = new JSONObject(response.body().string());
                             String aiReply = jsonResponse.getJSONArray("choices")
                                     .getJSONObject(0)
                                     .getJSONObject("message")
@@ -214,17 +207,17 @@ public class MainActivity extends AppCompatActivity {
 
                             addMessage("Bot", aiReply);
                         } catch (Exception e) {
-                            addMessage("Bot", "Data Format Issue: " + e.getMessage());
+                            addMessage("Bot", "Parsing Error: " + e.getMessage());
                         }
                     } else {
-                        addMessage("Bot", "Server Status Code " + response.code() + ": " + responseData);
+                        addMessage("Bot", "API Failed with code: " + response.code());
                     }
                 }
             });
 
         } catch (Exception e) {
-            addMessage("Bot", "App Logic Issue: " + e.getMessage());
+            addMessage("Bot", "Error: " + e.getMessage());
         }
     }
-                        }
-    
+    }
+                    
