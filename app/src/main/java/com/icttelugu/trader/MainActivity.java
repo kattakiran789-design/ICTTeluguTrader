@@ -29,8 +29,8 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    // మీ కొత్త Google AI Studio API Key ని ఇక్కడ పేస్ట్ చేయండి
-    private static final String GEMINI_API_KEY = "AQ.Ab8RN6KHGWnrYsjwtY2vld7M2apyHl4gimxx-svriGtNDxeAqw";
+    // console.groq.com నుండి పొందిన మీ Free Groq API Key ని ఇక్కడ ఉంచండి
+    private static final String GROQ_API_KEY = "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";
 
     private EditText queryInput;
     private Button askButton;
@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!userQuery.isEmpty()) {
                     addMessage("You", userQuery);
                     queryInput.setText("");
-                    addMessage("Bot", "Gemini AI analysis chestondi... Dayachesi vechi undandi.");
+                    addMessage("Bot", "AI analysis chestondi... Dayachesi vechi undandi.");
                     getAiAnalysis(userQuery);
                 }
             }
@@ -106,21 +106,20 @@ public class MainActivity extends AppCompatActivity {
                 "Analyze: '" + userQuery + "'. " +
                 "Provide detailed strategy breakdown including FVG, Order Flow, Entry, SL, and Target in simple Telugu.";
 
-        // Lite model Endpoint to reduce quota limits
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=" + GEMINI_API_KEY;
+        // Stable and Fast Groq API Endpoint
+        String url = "https://api.groq.com/openai/v1/chat/completions";
 
         try {
             JSONObject jsonBody = new JSONObject();
-            JSONArray contents = new JSONArray();
-            JSONObject contentObj = new JSONObject();
-            JSONArray parts = new JSONArray();
-            JSONObject partObj = new JSONObject();
+            jsonBody.put("model", "llama-3.3-70b-versatile"); // Fast and accurate free model
 
-            partObj.put("text", systemPrompt);
-            parts.put(partObj);
-            contentObj.put("parts", parts);
-            contents.put(contentObj);
-            jsonBody.put("contents", contents);
+            JSONArray messages = new JSONArray();
+            JSONObject messageObj = new JSONObject();
+            messageObj.put("role", "user");
+            messageObj.put("content", systemPrompt);
+            messages.put(messageObj);
+
+            jsonBody.put("messages", messages);
 
             RequestBody body = RequestBody.create(
                     MediaType.parse("application/json; charset=utf-8"),
@@ -129,6 +128,8 @@ public class MainActivity extends AppCompatActivity {
 
             Request request = new Request.Builder()
                     .url(url)
+                    .addHeader("Authorization", "Bearer " + GROQ_API_KEY)
+                    .addHeader("Content-Type", "application/json")
                     .post(body)
                     .build();
 
@@ -145,12 +146,10 @@ public class MainActivity extends AppCompatActivity {
                     if (response.isSuccessful()) {
                         try {
                             JSONObject jsonResponse = new JSONObject(responseData);
-                            String aiReply = jsonResponse.getJSONArray("candidates")
+                            String aiReply = jsonResponse.getJSONArray("choices")
                                     .getJSONObject(0)
-                                    .getJSONObject("content")
-                                    .getJSONArray("parts")
-                                    .getJSONObject(0)
-                                    .getString("text");
+                                    .getJSONObject("message")
+                                    .getString("content");
 
                             addMessage("Bot", aiReply);
                         } catch (Exception e) {
@@ -166,4 +165,5 @@ public class MainActivity extends AppCompatActivity {
             addMessage("Bot", "App Logic Issue: " + e.getMessage());
         }
     }
-                                       }
+            }
+                    
