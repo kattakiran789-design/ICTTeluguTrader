@@ -1,23 +1,18 @@
 package com.icttelugu.trader;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.TextView;
-
+import android.widget.ListView;
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.icttelugu.trader.R;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -29,38 +24,40 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    // console.groq.com నుండి పొందిన మీ Free Groq API Key ని ఇక్కడ ఉంచండి
-    private static final String GROQ_API_KEY = "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";
+    private EditText inputMessage;
+    private Button btnSend;
+    private ListView chatListView;
+    private ArrayList<String> chatList;
+    private ArrayAdapter<String> chatAdapter;
 
-    private EditText queryInput;
-    private Button askButton;
-    private LinearLayout chatContainer;
-    private ScrollView scrollView;
     private OkHttpClient client;
-    private Handler mainHandler;
+    private static final String GROQ_API_KEY = "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"; // మీ Groq API Key ని ఇక్కడ పేస్ట్ చేయండి
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        queryInput = findViewById(R.id.queryInput);
-        askButton = findViewById(R.id.askButton);
-        chatContainer = findViewById(R.id.chatContainer);
-        scrollView = findViewById(R.id.scrollView);
+        inputMessage = findViewById(R.id.inputMessage);
+        btnSend = findViewById(R.id.btnSend);
+        chatListView = findViewById(R.id.chatListView);
+
+        chatList = new ArrayList<>();
+        chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatList);
+        chatListView.setAdapter(chatAdapter);
 
         client = new OkHttpClient();
-        mainHandler = new Handler(Looper.getMainLooper());
 
+        // ప్రారంభ సందేశం (Welcome Message)
         addMessage("Bot", "Namaste! Nenu mi ICT AI Trader. E index leda stock yokka ICT Analysis kavalo type cheyandi.");
 
-        askButton.setOnClickListener(new View.OnClickListener() {
+        btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String userQuery = queryInput.getText().toString().trim();
+                String userQuery = inputMessage.getText().toString().trim();
                 if (!userQuery.isEmpty()) {
                     addMessage("You", userQuery);
-                    queryInput.setText("");
+                    inputMessage.setText("");
                     addMessage("Bot", "AI analysis chestondi... Dayachesi vechi undandi.");
                     getAiAnalysis(userQuery);
                 }
@@ -69,55 +66,58 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addMessage(String sender, String message) {
-        mainHandler.post(new Runnable() {
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                TextView textView = new TextView(MainActivity.this);
-                textView.setText(sender + ":\n" + message);
-                textView.setTextSize(16);
-                textView.setPadding(20, 20, 20, 20);
-
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                );
-                params.setMargins(0, 10, 0, 10);
-                textView.setLayoutParams(params);
-
-                if (sender.equals("You")) {
-                    textView.setBackgroundColor(0xFFE3F2FD);
-                } else {
-                    textView.setBackgroundColor(0xFFF1F8E9);
-                }
-
-                chatContainer.addView(textView);
-                scrollView.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        scrollView.fullScroll(View.FOCUS_DOWN);
-                    }
-                });
+                chatList.add(sender + ":\n\n" + message);
+                chatAdapter.notifyDataSetChanged();
+                chatListView.setSelection(chatList.size() - 1);
             }
         });
     }
 
     private void getAiAnalysis(String userQuery) {
-        String systemPrompt = "You are an expert Institutional ICT Strategy Analyst. " +
-                "Analyze: '" + userQuery + "'. " +
-                "Provide detailed strategy breakdown including FVG, Order Flow, Entry, SL, and Target in simple Telugu.";
+        String systemPrompt = "You are a professional ICT (Inner Circle Trader) Strategy Analyst for Indian Markets (Nifty, BankNifty, Stocks, Sensex).\n" +
+                "The user asked about: '" + userQuery + "'.\n\n" +
+                "Analyze the market strictly following ICT Order Block & Liquidity concepts. Output ONLY in clear TELUGU mixed with English technical terms.\n\n" +
+                "Provide the response strictly in this format:\n\n" +
+                "📊 **" + userQuery.toUpperCase() + " ICT & ORDER BLOCK ANALYSIS**\n\n" +
+                "1. **Market Structure & Liquidity Sweep:**\n" +
+                "   - Market Trend / Bias (Bullish / Bearish)\n" +
+                "   - Liquidity Sweep (Buy-side / Sell-side Liquidity taken)\n\n" +
+                "2. **Order Block (OB) Identification:**\n" +
+                "   - **Bullish Order Block Zone:** (Key demand/buying OB level)\n" +
+                "   - **Bearish Order Block Zone:** (Key supply/selling OB level)\n" +
+                "   - **Order Block Status:** (Mitigated or Unmitigated)\n\n" +
+                "3. **Fair Value Gap (FVG):**\n" +
+                "   - Important Imbalance / FVG range\n\n" +
+                "4. **Exact Trade Execution Plan:**\n" +
+                "   - **Entry Point:** (Exact level near Order Block / FVG)\n" +
+                "   - **Stop Loss (SL):** (Strict level below/above OB)\n" +
+                "   - **Target (TP1 & TP2):** (Next Liquidity Pool / High / Low)\n" +
+                "   - **Risk-to-Reward Ratio:** (e.g., 1:2.5)\n\n" +
+                "5. **Confirmation for Entry:**\n" +
+                "   - 5-Min Market Structure Shift (MSS / Choch) level needed for trigger.\n\n" +
+                "Do NOT give generic definitions. Provide precise trading levels, Order Block zones, and strategy execution steps.";
 
-        // Stable and Fast Groq API Endpoint
         String url = "https://api.groq.com/openai/v1/chat/completions";
 
         try {
             JSONObject jsonBody = new JSONObject();
-            jsonBody.put("model", "llama-3.3-70b-versatile"); // Fast and accurate free model
+            jsonBody.put("model", "llama-3.3-70b-versatile");
+            jsonBody.put("temperature", 0.3);
 
             JSONArray messages = new JSONArray();
-            JSONObject messageObj = new JSONObject();
-            messageObj.put("role", "user");
-            messageObj.put("content", systemPrompt);
-            messages.put(messageObj);
+            
+            JSONObject systemObj = new JSONObject();
+            systemObj.put("role", "system");
+            systemObj.put("content", systemPrompt);
+            messages.put(systemObj);
+
+            JSONObject userObj = new JSONObject();
+            userObj.put("role", "user");
+            userObj.put("content", userQuery);
+            messages.put(userObj);
 
             jsonBody.put("messages", messages);
 
@@ -165,5 +165,4 @@ public class MainActivity extends AppCompatActivity {
             addMessage("Bot", "App Logic Issue: " + e.getMessage());
         }
     }
-            }
-                    
+}
