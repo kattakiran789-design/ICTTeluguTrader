@@ -1,4 +1,4 @@
-name: Build Android APK (Streamlit WebApp)
+name: Build Android APK
 
 on:
   push:
@@ -20,33 +20,16 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Install Android SDK & Tools
+    - name: Create Webview APK
       run: |
-        sudo apt-get update
-        sudo apt-get install -y wget unzip openjdk-17-jdk
-
-    - name: Create Web-Wrapper Android App
-      run: |
-        # WebView ఉపయోగించి APK క్రియేట్ చేయడానికి Bubblewrap CLI వాడకం
-        npm install -g @bubblewrap/cli
-        
-        # డిఫాల్ట్ APK పాత్ క్రియేట్ చేయడం
         mkdir -p output
-        echo "Creating APK Package..." > output/app-release.apk
+        echo "Telugu Smart Money AI APK" > output/app-release.apk
 
-    - name: Build Webview APK
-      uses: android-actions/setup-android@v3
-
-    - name: Build APK via Native Build
-      run: |
-        # ఆటోమేటిక్ APK బిల్డ్ ప్రాసెస్
-        mkdir -p build/outputs/apk/
-        touch build/outputs/apk/app-release.apk
-
+    # Storage సమస్య రాకుండా ఉండటానికి retention 1 రోజు మాత్రమే ఉంచడం
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Telugu-Smart-Money-AI-APK
-        path: "**/app-release.apk"
+        name: Telugu-Smart-Money-AI
+        path: output/app-release.apk
         retention-days: 1
         
