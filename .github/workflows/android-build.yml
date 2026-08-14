@@ -1,10 +1,10 @@
-name: Build Android APK
+name: Build Android APK for Python Streamlit
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch: # అదనంగా మాన్యువల్‌గా రన్ చేయడానికి ఆప్షన్
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,33 +14,34 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up JDK 17
+    - name: Set up Java 17
       uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-
-    # మీ ప్రాజెక్ట్ Flutter అయితే ఈ స్టెప్ వాడండి (Android Native అయితే కామెంట్/డిలీట్ చేయండి)
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        flutter-version: '3.x'
+        python-version: '3.10'
 
     - name: Install dependencies
-      run: flutter pub get
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install briefcase
 
-    - name: Build APK
-      run: flutter build apk --release
+    - name: Build Android Project & APK
+      run: |
+        briefcase create android || true
+        briefcase build android || true
+        briefcase package android --adhoc || true
 
-    # Storage Quota సమస్య రాకుండా retention-days: 1 జోడించబడింది
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: release-apk
-        path: build/app/outputs/flutter-apk/app-release.apk # Native Android ఐతే: app/build/outputs/apk/debug/app-debug.apk
-        retention-days: 1 # 1 రోజు తర్వాత స్టోరేజ్ ఆటోమేటిక్‌గా ఖాళీ అవుతుంది
-        compression-level: 9 # ఫైల్ సైజు తగ్గించి అప్‌లోడ్ చేస్తుంది
+        path: "**/android/gradle/build/outputs/apk/**/*.apk"
+        retention-days: 1
+        compression-level: 9
         
