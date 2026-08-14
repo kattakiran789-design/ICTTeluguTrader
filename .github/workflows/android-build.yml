@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Android APK (External Link)
 
 on:
   push:
@@ -20,16 +20,29 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Create Webview APK
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Generate Dummy APK File
       run: |
         mkdir -p output
-        echo "Telugu Smart Money AI" > output/app-release.apk
+        echo "Telugu Smart Money AI - Application Package" > output/TeluguSmartMoneyAI.apk
 
-    # GitHub లో Storage తీసుకోకుండా retention 1 రోజుకు తగ్గించడం
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Telugu-Smart-Money-AI-APK
-        path: output/app-release.apk
-        retention-days: 1
+    - name: Upload APK to External Storage & Get Download Link
+      run: |
+        echo "================================================="
+        echo "Uploading APK to free external hosting..."
+        # GitHub Storage వాడకుండా బాహ్య సర్వర్‌కి పంపి డౌన్‌లోడ్ లింక్ పొందడం
+        DOWNLOAD_URL=$(curl -s -F "file=@output/TeluguSmartMoneyAI.apk" https://bashupload.com | grep -o 'https://bashupload.com/[^"]*')
+        echo "================================================="
+        echo "YOUR APK DOWNLOAD LINK:"
+        echo "$DOWNLOAD_URL"
+        echo "================================================="
         
