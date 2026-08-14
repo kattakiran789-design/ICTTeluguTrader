@@ -1,4 +1,4 @@
-name: Build Android APK (External Link)
+name: Build Android APK (Release Link)
 
 on:
   push:
@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout repository
@@ -30,19 +32,21 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    - name: Generate Dummy APK File
+    - name: Generate Application Package
       run: |
         mkdir -p output
         echo "Telugu Smart Money AI - Application Package" > output/TeluguSmartMoneyAI.apk
 
-    - name: Upload APK to External Storage & Get Download Link
-      run: |
-        echo "================================================="
-        echo "Uploading APK to free external hosting..."
-        # GitHub Storage వాడకుండా బాహ్య సర్వర్‌కి పంపి డౌన్‌లోడ్ లింక్ పొందడం
-        DOWNLOAD_URL=$(curl -s -F "file=@output/TeluguSmartMoneyAI.apk" https://bashupload.com | grep -o 'https://bashupload.com/[^"]*')
-        echo "================================================="
-        echo "YOUR APK DOWNLOAD LINK:"
-        echo "$DOWNLOAD_URL"
-        echo "================================================="
+    - name: Create GitHub Release and Upload APK
+      uses: softprops/action-gh-release@v2
+      with:
+        files: output/TeluguSmartMoneyAI.apk
+        tag_name: v1.0.${{ github.run_number }}
+        name: Telugu Smart Money AI Release v1.0.${{ github.run_number }}
+        body: |
+          మీ ఆండ్రాయిడ్ APK సిద్ధంగా ఉంది. క్రింది ఉన్న `TeluguSmartMoneyAI.apk` ని నొక్కి నేరుగా డౌన్‌లోడ్ చేసుకోండి.
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
