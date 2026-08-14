@@ -23,13 +23,13 @@ jobs:
     - name: Create Webview APK
       run: |
         mkdir -p output
-        echo "Telugu Smart Money AI APK" > output/app-release.apk
+        echo "Telugu Smart Money AI" > output/app-release.apk
 
-    # Storage సమస్య రాకుండా ఉండటానికి retention 1 రోజు మాత్రమే ఉంచడం
+    # GitHub లో Storage తీసుకోకుండా retention 1 రోజుకు తగ్గించడం
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Telugu-Smart-Money-AI
+        name: Telugu-Smart-Money-AI-APK
         path: output/app-release.apk
         retention-days: 1
         
