@@ -230,4 +230,3 @@ if user_prompt:
                     st.session_state.messages.append({"role": "assistant", "content": ai_response})
                 else:
                     st.error(f"xAI API ఎర్రర్: {str(last_error)}")
-                  
