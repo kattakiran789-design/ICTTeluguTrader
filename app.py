@@ -180,14 +180,14 @@ if user_prompt:
             if uploaded_image:
                 st.image(uploaded_image, use_container_width=True)
 
-        # Grok AI Response Generation with Dynamic Fallbacks
+        # Grok AI Response Generation with Official Latest Models
         with st.chat_message("assistant"):
             with st.spinner("Grok AI విజన్స్ & మార్కెట్ డేటాతో విశ్లేషిస్తోంది..."):
                 prompt_text = f"{realtime_context}\n[User Context: Market={market_focus}, Timeframe={timeframe}]\nయూజర్ ప్రశ్న: {user_prompt}"
 
                 if uploaded_file:
                     base64_img = encode_image(uploaded_file)
-                    candidate_models = ["grok-2-vision-1212", "grok-vision-beta"]
+                    candidate_models = ["grok-2-vision-latest", "grok-vision-beta"]
                     messages_payload = [
                         {"role": "system", "content": SYSTEM_PROMPT},
                         {
@@ -202,7 +202,8 @@ if user_prompt:
                         }
                     ]
                 else:
-                    candidate_models = ["grok-2", "grok-3", "grok-beta", "grok-2-1212"]
+                    # xAI ప్రస్తుత అధికారిక లీగల్ ఐడీలు
+                    candidate_models = ["grok-2-latest", "grok-beta"]
                     messages_payload = [
                         {"role": "system", "content": SYSTEM_PROMPT},
                         {"role": "user", "content": prompt_text}
@@ -229,4 +230,4 @@ if user_prompt:
                     st.session_state.messages.append({"role": "assistant", "content": ai_response})
                 else:
                     st.error(f"xAI API ఎర్రర్: {str(last_error)}")
-            
+                  
