@@ -101,7 +101,7 @@ with st.sidebar:
     
     market_focus = st.selectbox(
         "మార్కెట్ ఎంచుకోండి:",
-        ["Nifty 50", "Bank Nifty", "Fin Nifty", "Sensex", "Individual Stocks (NSE)"]
+        ["Nifty 50", "Bank Nifty", "Fin Nifty", "Sensex", "Individual Stocks (NSE/BSE)"]
     )
     
     timeframe = st.selectbox(
@@ -143,7 +143,7 @@ if uploaded_image:
     st.image(uploaded_image, caption="విశ్లేషణ కోసం సిద్ధంగా ఉన్న చార్ట్", use_container_width=True)
 
 # Chat Input
-user_prompt = st.chat_input("మార్కెట్ లేదా స్టాక్ పేరు టైప్ చేయండి (ఉదా: Nifty, Reliance, Sensex)...")
+user_prompt = st.chat_input("మార్కెట్ లేదా స్టాక్ పేరు టైప్ చేయండి (ఉదా: Sensex, Nifty, Reliance)...")
 
 if user_prompt:
     if not grok_api_key:
@@ -186,10 +186,11 @@ if user_prompt:
                 prompt_text = f"{realtime_context}\n[User Context: Market={market_focus}, Timeframe={timeframe}]\nయూజర్ ప్రశ్న: {user_prompt}"
 
                 try:
-                    # ఇమేజ్ ఉంటే grok-2-vision, లేదంటే నికరమైన grok-2 మోడల్
+                    # xAI ప్రస్తుత లైవ్ మోడల్ 'grok-4.3' కి మార్చబడింది
+                    model_name = "grok-4.3"
+                    
                     if uploaded_file:
                         base64_img = encode_image(uploaded_file)
-                        model_name = "grok-2-vision"
                         messages_payload = [
                             {"role": "system", "content": SYSTEM_PROMPT},
                             {
@@ -204,7 +205,6 @@ if user_prompt:
                             }
                         ]
                     else:
-                        model_name = "grok-2"
                         messages_payload = [
                             {"role": "system", "content": SYSTEM_PROMPT},
                             {"role": "user", "content": prompt_text}
@@ -222,3 +222,4 @@ if user_prompt:
 
                 except Exception as e:
                     st.error(f"xAI API Error: {str(e)}")
+            
