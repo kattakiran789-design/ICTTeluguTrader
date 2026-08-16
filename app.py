@@ -186,7 +186,7 @@ if user_prompt:
                 try:
                     prompt_text = f"{realtime_context}\n[User Context: Market={market_focus}, Timeframe={timeframe}]\nయూజర్ ప్రశ్న: {user_prompt}"
 
-                    # Image upload ఉంటే grok-2-vision-1212, లేదంటే grok-2-latest వాడటం
+                    # Image upload ఉంటే grok-2-vision-1212, లేదంటే grok-2-1212 వాడటం
                     if uploaded_file:
                         base64_img = encode_image(uploaded_file)
                         model_name = "grok-2-vision-1212"
@@ -204,7 +204,7 @@ if user_prompt:
                             }
                         ]
                     else:
-                        model_name = "grok-2-latest"
+                        model_name = "grok-2-1212"
                         messages_payload = [
                             {"role": "system", "content": SYSTEM_PROMPT},
                             {"role": "user", "content": prompt_text}
@@ -223,3 +223,4 @@ if user_prompt:
 
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
+        
