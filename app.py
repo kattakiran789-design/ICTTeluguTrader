@@ -1,13 +1,12 @@
 import os
-import base64
 import streamlit as st
 import yfinance as yf
-from openai import OpenAI
+import google.generativeai as genai
 from PIL import Image
 
 # 1. Page Configuration
 st.set_page_config(
-    page_title="తెలుగు స్మార్ట్ మనీ AI (Grok)",
+    page_title="తెలుగు స్మార్ట్ మనీ AI",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -77,10 +76,6 @@ def get_realtime_market_data(symbol_or_name):
     except Exception as e:
         return {"success": False, "error": str(e)}
 
-# Helper to encode uploaded images for Grok Vision
-def encode_image(uploaded_file):
-    return base64.b64encode(uploaded_file.getvalue()).decode('utf-8')
-
 # 5. UI Styling
 st.markdown("""
 <style>
@@ -95,9 +90,10 @@ st.markdown("""
 
 # 6. Sidebar Configuration
 with st.sidebar:
-    st.title("⚡ Grok API సెట్టింగ్స్")
+    st.title("⚙️ సెట్టింగ్స్")
     
-    grok_api_key = st.text_input("Grok API Key నమోదు చేయండి:", type="password")
+    gemini_api_key = st.text_input("Gemini API Key నమోదు చేయండి (ఉచితం):", type="password")
+    st.caption("🔑 [aistudio.google.com](https://aistudio.google.com) నుండి ఉచిత కీ పొందవచ్చు.")
     
     market_focus = st.selectbox(
         "మార్కెట్ ఎంచుకోండి:",
@@ -115,7 +111,7 @@ with st.sidebar:
         st.rerun()
 
 # 7. Header Section
-st.markdown("<h1 class='main-header'>తెలుగు స్మార్ట్ మనీ AI 📊 (Powered by Grok)</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-header'>తెలుగు స్మార్ట్ మనీ AI 📊</h1>", unsafe_allow_html=True)
 st.markdown("<p class='sub-header'>ICT, Supply & Demand మరియు Live Market Data తో విశ్లేషణ</p>", unsafe_allow_html=True)
 
 st.markdown("""
@@ -146,14 +142,11 @@ if uploaded_image:
 user_prompt = st.chat_input("మార్కెట్ లేదా స్టాక్ పేరు టైప్ చేయండి (ఉదా: Sensex, Nifty, Reliance)...")
 
 if user_prompt:
-    if not grok_api_key:
-        st.error("⚠️ దయచేసి ఎడమవైపు సైడ్‌బార్‌లో మీ Grok API Key ని నమోదు చేయండి.")
+    if not gemini_api_key:
+        st.error("⚠️ దయచేసి ఎడమవైపు సైడ్‌బార్‌లో మీ Gemini API Key ని నమోదు చేయండి.")
     else:
-        # Initialize xAI (Grok) Client
-        client = OpenAI(
-            api_key=grok_api_key,
-            base_url="https://api.x.ai/v1"
-        )
+        # Configure Gemini
+        genai.configure(api_key=gemini_api_key)
 
         # Realtime market context
         market_data = get_realtime_market_data(user_prompt)
@@ -180,46 +173,24 @@ if user_prompt:
             if uploaded_image:
                 st.image(uploaded_image, use_container_width=True)
 
-        # Grok AI Response Generation
+        # Gemini AI Response Generation
         with st.chat_message("assistant"):
-            with st.spinner("Grok AI విశ్లేషిస్తోంది..."):
-                prompt_text = f"{realtime_context}\n[User Context: Market={market_focus}, Timeframe={timeframe}]\nయూజర్ ప్రశ్న: {user_prompt}"
+            with st.spinner("Gemini AI విశ్లేషిస్తోంది..."):
+                prompt_text = f"{SYSTEM_PROMPT}\n\n{realtime_context}\n[User Context: Market={market_focus}, Timeframe={timeframe}]\nయూజర్ ప్రశ్న: {user_prompt}"
 
                 try:
-                    # xAI ప్రస్తుత లైవ్ మోడల్ 'grok-4.3' కి మార్చబడింది
-                    model_name = "grok-4.3"
+                    # ఉచిత Gemini Flash Model
+                    model = genai.GenerativeModel('gemini-1.5-flash')
                     
-                    if uploaded_file:
-                        base64_img = encode_image(uploaded_file)
-                        messages_payload = [
-                            {"role": "system", "content": SYSTEM_PROMPT},
-                            {
-                                "role": "user",
-                                "content": [
-                                    {"type": "text", "text": prompt_text},
-                                    {
-                                        "type": "image_url",
-                                        "image_url": {"url": f"data:image/jpeg;base64,{base64_img}"}
-                                    }
-                                ]
-                            }
-                        ]
+                    if uploaded_image:
+                        response = model.generate_content([prompt_text, uploaded_image])
                     else:
-                        messages_payload = [
-                            {"role": "system", "content": SYSTEM_PROMPT},
-                            {"role": "user", "content": prompt_text}
-                        ]
+                        response = model.generate_content(prompt_text)
 
-                    response = client.chat.completions.create(
-                        model=model_name,
-                        messages=messages_payload,
-                        temperature=0.3
-                    )
-
-                    ai_response = response.choices[0].message.content
+                    ai_response = response.text
                     st.markdown(ai_response)
                     st.session_state.messages.append({"role": "assistant", "content": ai_response})
 
                 except Exception as e:
-                    st.error(f"xAI API Error: {str(e)}")
-            
+                    st.error(f"Gemini API Error: {str(e)}")
+    
