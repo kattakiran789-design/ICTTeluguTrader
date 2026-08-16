@@ -180,53 +180,45 @@ if user_prompt:
             if uploaded_image:
                 st.image(uploaded_image, use_container_width=True)
 
-        # Grok AI Response Generation with Official Latest Models
+        # Grok AI Response Generation
         with st.chat_message("assistant"):
-            with st.spinner("Grok AI విజన్స్ & మార్కెట్ డేటాతో విశ్లేషిస్తోంది..."):
+            with st.spinner("Grok AI విశ్లేషిస్తోంది..."):
                 prompt_text = f"{realtime_context}\n[User Context: Market={market_focus}, Timeframe={timeframe}]\nయూజర్ ప్రశ్న: {user_prompt}"
 
-                if uploaded_file:
-                    base64_img = encode_image(uploaded_file)
-                    candidate_models = ["grok-2-vision-latest", "grok-vision-beta"]
-                    messages_payload = [
-                        {"role": "system", "content": SYSTEM_PROMPT},
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": prompt_text},
-                                {
-                                    "type": "image_url",
-                                    "image_url": {"url": f"data:image/jpeg;base64,{base64_img}"}
-                                }
-                            ]
-                        }
-                    ]
-                else:
-                    # xAI ప్రస్తుత అధికారిక లీగల్ ఐడీలు
-                    candidate_models = ["grok-2-latest", "grok-beta"]
-                    messages_payload = [
-                        {"role": "system", "content": SYSTEM_PROMPT},
-                        {"role": "user", "content": prompt_text}
-                    ]
+                try:
+                    # ఇమేజ్ ఉంటే grok-2-vision, లేదంటే నికరమైన grok-2 మోడల్
+                    if uploaded_file:
+                        base64_img = encode_image(uploaded_file)
+                        model_name = "grok-2-vision"
+                        messages_payload = [
+                            {"role": "system", "content": SYSTEM_PROMPT},
+                            {
+                                "role": "user",
+                                "content": [
+                                    {"type": "text", "text": prompt_text},
+                                    {
+                                        "type": "image_url",
+                                        "image_url": {"url": f"data:image/jpeg;base64,{base64_img}"}
+                                    }
+                                ]
+                            }
+                        ]
+                    else:
+                        model_name = "grok-2"
+                        messages_payload = [
+                            {"role": "system", "content": SYSTEM_PROMPT},
+                            {"role": "user", "content": prompt_text}
+                        ]
 
-                ai_response = None
-                last_error = None
+                    response = client.chat.completions.create(
+                        model=model_name,
+                        messages=messages_payload,
+                        temperature=0.3
+                    )
 
-                for model_name in candidate_models:
-                    try:
-                        response = client.chat.completions.create(
-                            model=model_name,
-                            messages=messages_payload,
-                            temperature=0.3
-                        )
-                        ai_response = response.choices[0].message.content
-                        break
-                    except Exception as err:
-                        last_error = err
-                        continue
-
-                if ai_response:
+                    ai_response = response.choices[0].message.content
                     st.markdown(ai_response)
                     st.session_state.messages.append({"role": "assistant", "content": ai_response})
-                else:
-                    st.error(f"xAI API ఎర్రర్: {str(last_error)}")
+
+                except Exception as e:
+                    st.error(f"xAI API Error: {str(e)}")
